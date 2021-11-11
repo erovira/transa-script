@@ -1,5 +1,5 @@
 # transa-script
-Shell script to compute the exchange median USD/UYU exchange rate
+Shell script to compute the Itaú mean USD/UYU exchange rate
 
 
 ## Example usage
