@@ -26,7 +26,5 @@ If you'd like to type `transa` instead of `sh transa.sh` do the following:
 
 ```
 chmod +x transa.sh # Make it executable
-cp transa.sh ~/.local/bin/transa # Make it detectable by your shell
+cp transa.sh /usr/local/bin/transa # Make it detectable by your shell
 ```
-
-If you don't have a `~/.local/bin` directory or don't want to use it, then you should move the script somewhere else in your $PATH 😀
