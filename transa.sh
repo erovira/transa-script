@@ -3,7 +3,8 @@
 BUYSELL=$(
     curl --silent https://www.itau.com.uy/inst/aci/cotiz.xml | \
     grep 'LINK' --after-context=2 | \
-    tail --lines 2 | \
+    # Long form of -n is not the same in linux/mac
+    tail -n 2 | \
     grep --only-match '[[:digit:]]\{2\}[,][[:digit:]]\{2\}' | \
     tr "," "." | \
     tr "\n" " "
