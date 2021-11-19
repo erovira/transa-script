@@ -25,8 +25,17 @@ echo "Itaú compra y venta: ${BUY}, ${SELL}"
 # Echo mean computation, in case anyone wants to replicate it themselves.
 echo "${MEAN_EXPR} = ${MEAN}"
 
+# Thanks SO
+beginswith() { case "$2" in "$1"*) true;; *) false;; esac; }
+
 if [ -n "$1" ]
 then
-    PESOS=$(echo "scale=2; ($1 * ${MEAN})" | bc --mathlib)
-    echo "TRANSA: U\$S $1 = $ $PESOS"
+    if beginswith "$" "$1"; then
+        UYU=${1:1} # Drop the initial `$` from the input.
+        USD=$(echo "scale=2; (${UYU} / ${MEAN})" | bc --mathlib)
+    else
+        USD=$1
+        UYU=$(echo "scale=2; (${USD} * ${MEAN})" | bc --mathlib)
+    fi
+    echo "TRANSA: U\$S $USD = $ $UYU"
 fi
