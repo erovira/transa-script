@@ -32,7 +32,7 @@ beginswith() { case "$2" in "$1"*) true;; *) false;; esac; }
 if [ -n "$1" ]
 then
     if beginswith "$" "$1"; then
-        UYU=${1:1} # Drop the initial `$` from the input.
+        UYU=$(echo "$1" | cut -c 2-) # Drop the initial `$` from the input.
         USD=$(echo "scale=2; (${UYU} / ${MEAN})" | bc --mathlib)
     else
         USD=$1
