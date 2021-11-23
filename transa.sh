@@ -1,18 +1,19 @@
 #!/bin/sh
 
-BUYSELL=$(
+# TODO: Simplify this.
+BUYSELL_LINES=$(
     curl --silent https://www.itau.com.uy/inst/aci/cotiz.xml | \
     grep 'LINK' --after-context=2 | \
     # Long form of -n is not the same in linux/mac
     tail -n 2 | \
     grep --only-match '[[:digit:]]\{2\}[,][[:digit:]]\{2\}' | \
     tr "," "." | \
-    tr "\n" " "
+    tr "\n" " " | \
+    grep --only-match --extended-regexp "[0-9.]+"
 )
 
-# A (probably super) dumb way of extracting buy/sale prices
-BUY=$(echo $BUYSELL | grep --only-match --extended-regexp "[0-9.]+ " | tr -d " ")
-SELL=$(echo $BUYSELL | grep --only-match --extended-regexp " [0-9.]+" | tr -d " ")
+BUY=$(echo "$BUYSELL_LINES" | head -n 1)
+SELL=$(echo "$BUYSELL_LINES" | tail -n 1)
 
 MEAN_EXPR="(${BUY} + ${SELL}) / 2"
 
