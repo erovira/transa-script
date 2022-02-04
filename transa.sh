@@ -18,8 +18,7 @@ SELL=$(echo "$BUYSELL_LINES" | tail -n 1)
 MEAN_EXPR="(${BUY} + ${SELL}) / 2"
 
 # --mathlib is for bc to use decimals properly
-# scale=2 is for bc to restrict results to 2 decimal digits.
-MEAN=$(echo "scale=2; ${MEAN_EXPR}" | bc --mathlib)
+MEAN=$(echo "${MEAN_EXPR}" | bc --mathlib)
 
 echo "Itaú compra y venta: ${BUY}, ${SELL}"
 
@@ -36,7 +35,7 @@ then
         USD=$(echo "scale=2; (${UYU} / ${MEAN})" | bc --mathlib)
     else
         USD=$1
-        UYU=$(echo "scale=2; (${USD} * ${MEAN})" | bc --mathlib)
+        UYU=$(printf %.2f "$(echo "(${USD} * ${MEAN})" | bc --mathlib)")
     fi
     echo "TRANSA: U\$S $USD = $ $UYU"
 fi
