@@ -28,17 +28,19 @@ echo "${MEAN_EXPR} = ${MEAN}"
 # Thanks SO
 beginswith() { case "$2" in "$1"*) true;; *) false;; esac; }
 
+ROUND_TWO="printf %.2f"
+
 if [ -n "$1" ]
 then
     # `printf %.2f` rounds the input to two decimal places.
 
     if beginswith "$" "$1"; then
         # The `cut` command drops the initial `$` from the input.
-        UYU=$(printf %.2f "$(echo "$1" | cut -c 2-)")
-        USD=$(printf %.2f "$(echo "(${UYU} / ${MEAN})" | bc --mathlib)")
+        UYU=$($ROUND_TWO "$(echo "$1" | cut -c 2-)")
+        USD=$($ROUND_TWO "$(echo "(${UYU} / ${MEAN})" | bc --mathlib)")
     else
-        USD=$(printf %.2f "$1")
-        UYU=$(printf %.2f "$(echo "(${USD} * ${MEAN})" | bc --mathlib)")
+        USD=$($ROUND_TWO "$1")
+        UYU=$($ROUND_TWO "$(echo "(${USD} * ${MEAN})" | bc --mathlib)")
     fi
     echo "TRANSA: U\$S $USD = $ $UYU"
 fi
