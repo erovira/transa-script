@@ -18,7 +18,9 @@ SELL=$(echo "$BUYSELL_LINES" | tail -n 1)
 MEAN_EXPR="(${BUY} + ${SELL}) / 2"
 
 # --mathlib is for bc to use decimals properly
-MEAN=$(echo "${MEAN_EXPR}" | bc --mathlib)
+CALC="bc --mathlib"
+
+MEAN=$(echo "${MEAN_EXPR}" | $CALC)
 
 echo "Itaú compra y venta: ${BUY}, ${SELL}"
 
@@ -37,10 +39,10 @@ then
     if beginswith "$" "$1"; then
         # The `cut` command drops the initial `$` from the input.
         UYU=$($ROUND_TWO "$(echo "$1" | cut -c 2-)")
-        USD=$($ROUND_TWO "$(echo "(${UYU} / ${MEAN})" | bc --mathlib)")
+        USD=$($ROUND_TWO "$(echo "(${UYU} / ${MEAN})" | $CALC)")
     else
         USD=$($ROUND_TWO "$1")
-        UYU=$($ROUND_TWO "$(echo "(${USD} * ${MEAN})" | bc --mathlib)")
+        UYU=$($ROUND_TWO "$(echo "(${USD} * ${MEAN})" | $CALC)")
     fi
     echo "TRANSA: U\$S $USD = $ $UYU"
 fi
