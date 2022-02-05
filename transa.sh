@@ -35,7 +35,7 @@ then
     if beginswith "$" "$1"; then
         # The `cut` command drops the initial `$` from the input.
         UYU=$(printf %.2f "$(echo "$1" | cut -c 2-)")
-        USD=$(echo "scale=2; (${UYU} / ${MEAN})" | bc --mathlib)
+        USD=$(printf %.2f "$(echo "(${UYU} / ${MEAN})" | bc --mathlib)")
     else
         USD=$(printf %.2f "$1")
         UYU=$(printf %.2f "$(echo "(${USD} * ${MEAN})" | bc --mathlib)")
