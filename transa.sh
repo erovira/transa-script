@@ -30,8 +30,11 @@ beginswith() { case "$2" in "$1"*) true;; *) false;; esac; }
 
 if [ -n "$1" ]
 then
+    # `printf %.2f` rounds the input to two decimal places.
+
     if beginswith "$" "$1"; then
-        UYU=$(echo "$1" | cut -c 2-) # Drop the initial `$` from the input.
+        # The `cut` command drops the initial `$` from the input.
+        UYU=$(printf %.2f "$(echo "$1" | cut -c 2-)")
         USD=$(echo "scale=2; (${UYU} / ${MEAN})" | bc --mathlib)
     else
         USD=$(printf %.2f "$1")
