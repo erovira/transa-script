@@ -34,7 +34,7 @@ then
         UYU=$(echo "$1" | cut -c 2-) # Drop the initial `$` from the input.
         USD=$(echo "scale=2; (${UYU} / ${MEAN})" | bc --mathlib)
     else
-        USD=$1
+        USD=$(printf %.2f "$1")
         UYU=$(printf %.2f "$(echo "(${USD} * ${MEAN})" | bc --mathlib)")
     fi
     echo "TRANSA: U\$S $USD = $ $UYU"
