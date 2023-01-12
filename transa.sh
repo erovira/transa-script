@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# Make the shell script more safe
+# - errexit: Stops execution whenever a command fails.
+# - noglob: Disable globbing.
+# - nounset: Treat unset variables as an error and exit immediately.
+set -o errexit -o noglob -o nounset
+
 # TODO: Simplify this.
 BUYSELL_LINES=$(
     curl --silent https://www.itau.com.uy/inst/aci/cotiz.xml | \
