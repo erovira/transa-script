@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Make the shell script more safe
 # - errexit: Stops execution whenever a command fails.
@@ -6,49 +6,95 @@
 # - nounset: Treat unset variables as an error and exit immediately.
 set -o errexit -o noglob -o nounset
 
-# TODO: Simplify this.
-BUYSELL_LINES=$(
-    curl --silent https://www.itau.com.uy/inst/aci/cotiz.xml | \
-    grep 'LINK' --after-context=2 | \
-    # Long form of -n is not the same in linux/mac
-    tail -n 2 | \
-    grep --only-match '[[:digit:]]\{2\}[,][[:digit:]]\{2\}' | \
-    tr "," "." | \
-    tr "\n" " " | \
-    grep --only-match --extended-regexp "[0-9.]+"
-)
+DEFAULT="itau"
 
-BUY=$(echo "$BUYSELL_LINES" | head -n 1)
-SELL=$(echo "$BUYSELL_LINES" | tail -n 1)
+exit_instructions() {
+    echo "Correct usage examples:"
+    echo "  transa"
+    echo "  transa <amount>"
+    echo "  transa <amount> brou"
+    echo "  transa <amount> itau"
+    echo "  transa itau"
+    echo "  transa brou"
+    echo ""
+    echo "If using amount with \$, make sure to escape it:"
+    echo "  transa \\\$20000'"
+    echo "  transa \\\$20000' brou"
+    exit 1
+}
 
+# Act depending on the number of arguments
+if [ $# -eq 0 ]; then
+    AMOUNT=0
+    EXCHANGE=$DEFAULT
+elif [ $# -eq 1 ]; then
+    # transa <number> or transa brou
+    if [[ $1 =~ ^[$]?[0-9]*\.?[0-9]+$ ]]; then
+        AMOUNT=$1
+        EXCHANGE=$DEFAULT
+    else
+        AMOUNT=0
+        EXCHANGE=$1
+    fi
+elif [ $# -eq 2 ]; then
+    AMOUNT=$1
+    EXCHANGE=$2
+else
+    exit_instructions
+fi
+
+# Default to "itau" and convert to lowercase
+EXCHANGE=$(echo $EXCHANGE | tr '[:upper:]' '[:lower:]')
+
+if [[ $EXCHANGE == "brou" ]]; then
+    EXCHANGE_NAME="eBROU"
+    html_contents=$(wget -qO- 'https://www.brou.com.uy/c/portal/render_portlet?p_l_id=20593&p_p_id=cotizacionfull_WAR_broutmfportlet_INSTANCE_otHfewh1klyS&p_p_lifecycle=0&p_t_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=0&p_p_col_count=2&p_p_isolated=1&currentURL=%2Fweb%2Fguest%2Fcotizaciones')
+    RATES=$(echo "$html_contents" | xmllint --html --xpath "//p[text()='DÃ³lar eBROU']/../../..//p[@class='valor']/text()" - | tr ',' '.')
+    BUY=$(echo $RATES | awk '{print $1}')
+    SELL=$(echo $RATES | awk '{print $2}')
+elif [[ $EXCHANGE == "itau" ]]; then
+    EXCHANGE_NAME="Itaú"
+    xml_contents=$(wget -qO- https://www.itau.com.uy/inst/aci/cotiz.xml)
+    BUY=$(echo "$xml_contents" | xmllint --xpath "//cotizacion[moneda='US.D']/compra/text()" - | tr ',' '.')
+    SELL=$(echo "$xml_contents" | xmllint --xpath "//cotizacion[moneda='US.D']/venta/text()" - | tr ',' '.')
+else
+    exit_instructions
+fi
+
+echo "$EXCHANGE_NAME compra y venta: ${BUY}, ${SELL}"
+
+#
+# Compute the median
+#
 MEAN_EXPR="(${BUY} + ${SELL}) / 2"
 
 # --mathlib is for bc to use decimals properly
 CALC="bc --mathlib"
-
-MEAN=$(echo "${MEAN_EXPR}" | $CALC)
-
-echo "Itaú compra y venta: ${BUY}, ${SELL}"
+MEAN=$(echo "scale=2;${MEAN_EXPR}" | $CALC)
 
 # Echo mean computation, in case anyone wants to replicate it themselves.
 echo "${MEAN_EXPR} = ${MEAN}"
 
 # Thanks SO
-beginswith() { case "$2" in "$1"*) true;; *) false;; esac; }
+beginswith() { case "$2" in "$1"*) true ;; *) false ;; esac }
 
 ROUND_TWO="printf %.2f"
 
-if [ -n "$1" ]
-then
+if [ -n "$AMOUNT" ]; then
     # `printf %.2f` rounds the input to two decimal places.
 
-    if beginswith "$" "$1"; then
+    if beginswith "$" "$AMOUNT"; then
         # The `cut` command drops the initial `$` from the input.
-        UYU=$($ROUND_TWO "$(echo "$1" | cut -c 2-)")
+        UYU=$($ROUND_TWO "$(echo "$AMOUNT" | cut -c 2-)")
         USD=$($ROUND_TWO "$(echo "(${UYU} / ${MEAN})" | $CALC)")
     else
-        USD=$($ROUND_TWO "$1")
+        USD=$($ROUND_TWO "$AMOUNT")
         UYU=$($ROUND_TWO "$(echo "(${USD} * ${MEAN})" | $CALC)")
     fi
-    echo "TRANSA: U\$S $USD = $ $UYU"
+
+    if [ "$USD" != "0.00" ]; then
+        echo ""
+        echo "TRANSA: U\$S $USD = $ $UYU"
+    fi
+
 fi
