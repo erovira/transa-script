@@ -70,7 +70,7 @@ MEAN_EXPR="(${BUY} + ${SELL}) / 2"
 
 # --mathlib is for bc to use decimals properly
 CALC="bc --mathlib"
-MEAN=$(echo "scale=2;${MEAN_EXPR}" | $CALC)
+MEAN=$(echo "${MEAN_EXPR}" | $CALC)
 
 # Echo mean computation, in case anyone wants to replicate it themselves.
 echo "${MEAN_EXPR} = ${MEAN}"
