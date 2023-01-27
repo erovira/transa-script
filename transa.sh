@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Make the shell script more safe
 # - errexit: Stops execution whenever a command fails.
