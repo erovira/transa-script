@@ -55,8 +55,8 @@ if [[ $EXCHANGE == "brou" ]]; then
 elif [[ $EXCHANGE == "itau" ]]; then
     EXCHANGE_NAME="Itaú"
     xml_contents=$(wget -qO- https://www.itau.com.uy/inst/aci/cotiz.xml)
-    BUY=$(echo "$xml_contents" | xmllint --xpath "//cotizacion[moneda='US.D']/compra/text()" - | tr ',' '.')
-    SELL=$(echo "$xml_contents" | xmllint --xpath "//cotizacion[moneda='US.D']/venta/text()" - | tr ',' '.')
+    BUY=$(echo "$xml_contents" | xmllint --xpath "//cotizacion[moneda='LINK']/compra/text()" - | tr ',' '.')
+    SELL=$(echo "$xml_contents" | xmllint --xpath "//cotizacion[moneda='LINK']/venta/text()" - | tr ',' '.')
 else
     exit_instructions
 fi
