@@ -69,5 +69,6 @@ If you'd like to type `transa` instead of `bash transa.sh` do the following:
 
 ```
 chmod +x transa.sh # Make it executable
-cp transa.sh /usr/local/bin/transa # Make it detectable by your shell
+cp transa.sh $HOME/.local/bin/transa # Make it detectable by your shell
 ```
+Note; you _may_ need to add `$HOME/.local/bin/` to your $PATH.
