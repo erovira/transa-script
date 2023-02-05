@@ -64,7 +64,7 @@ fi
 echo "$EXCHANGE_NAME compra y venta: ${BUY}, ${SELL}"
 
 #
-# Compute the median
+# Compute the mean
 #
 MEAN_EXPR="(${BUY} + ${SELL}) / 2"
 
