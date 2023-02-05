@@ -48,13 +48,13 @@ eBROU compra y venta: 38.40000, 39.80000
 Itaú compra y venta: 37.90, 40.30
 (37.90 + 40.30) / 2 = 39.10
 
-TRANSA: U$S 850.00 = $ 33235.00
+TRANSA: US$ 850.00 = $ 33235.00
 
 ➜ transa 850 brou
 eBROU compra y venta: 38.40000, 39.80000
 (38.40000 + 39.80000) / 2 = 39.10
 
-TRANSA: U$S 850.00 = $ 33235.00
+TRANSA: US$ 850.00 = $ 33235.00
 ```
 
 ### Provide an amount in UYU
@@ -64,13 +64,13 @@ TRANSA: U$S 850.00 = $ 33235.00
 Itaú compra y venta: 37.90, 40.30
 (37.90 + 40.30) / 2 = 39.10
 
-TRANSA: U$S 1278.77 = $ 50000.00
+TRANSA: US$ 1278.77 = $ 50000.00
 
 ➜ transa \$50000 brou
 eBROU compra y venta: 38.40000, 39.80000
 (38.40000 + 39.80000) / 2 = 39.10
 
-TRANSA: U$S 1278.77 = $ 50000.00
+TRANSA: US$ 1278.77 = $ 50000.00
 ```
 
 ⚠️ Note that you'll have to escape the `$` character with a `\`

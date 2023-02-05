@@ -94,6 +94,6 @@ if [ "$AMOUNT" != "" ]; then
     fi
 
     echo ""
-    echo "TRANSA: U\$S $USD = $ $UYU"
+    echo "TRANSA: US\$ $USD = $ $UYU"
 
 fi
