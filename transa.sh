@@ -18,8 +18,8 @@ exit_instructions() {
     echo "  transa brou"
     echo ""
     echo "If using amount with \$, make sure to escape it:"
-    echo "  transa \\\$20000'"
-    echo "  transa \\\$20000' brou"
+    echo "  transa \\\$20000"
+    echo "  transa \\\$20000 brou"
     exit 1
 }
 
