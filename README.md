@@ -1,5 +1,5 @@
 # transa-script
-Shell script to compute the Itaú & BROU mean USD/UYU exchange rate.
+Shell script to compute the Itaú & BROU mean [USD](https://en.wikipedia.org/wiki/United_States_dollar)/[UYU](https://en.wikipedia.org/wiki/Uruguayan_peso) exchange rate.
 
 ## Usage
 
