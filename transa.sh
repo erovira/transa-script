@@ -90,7 +90,7 @@ if [ "$AMOUNT" != "" ]; then
         USD=$($ROUND_TWO "$(echo "(${UYU} / ${MEAN})" | $CALC)")
     else
         USD=$($ROUND_TWO "$AMOUNT" | tr ',' '.')
-        UYU=$($ROUND_TWO "$(echo "(${USD} * ${MEAN})" | $CALC)") # This fails with bash's builtin printf
+        UYU=$($ROUND_TWO "$(echo "(${USD} * ${MEAN})" | $CALC)")
     fi
 
     echo ""
