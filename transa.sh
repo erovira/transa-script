@@ -6,6 +6,10 @@
 # - nounset: Treat unset variables as an error and exit immediately.
 set -o errexit -o noglob -o nounset
 
+# So that printf uses dot for de decimal separator and no thousands' grouping
+# regardless of the user's locale.
+LC_NUMERIC="POSIX"
+
 DEFAULT="itau"
 
 exit_instructions() {
