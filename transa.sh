@@ -50,12 +50,16 @@ fi
 # Default to "itau" and convert to lowercase
 EXCHANGE=$(echo "$EXCHANGE" | tr '[:upper:]' '[:lower:]')
 
+# Use GNU's printf instead of bash builtin
+# `printf %.2f` rounds the input to two decimal places.
+ROUND_TWO="/usr/bin/printf %.2f"
+
 if [ "$EXCHANGE" = "brou" ]; then
     EXCHANGE_NAME="eBROU"
     html_contents=$(wget -qO- 'https://www.brou.com.uy/c/portal/render_portlet?p_l_id=20593&p_p_id=cotizacionfull_WAR_broutmfportlet_INSTANCE_otHfewh1klyS&p_p_lifecycle=0&p_t_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=0&p_p_col_count=2&p_p_isolated=1&currentURL=%2Fweb%2Fguest%2Fcotizaciones')
     RATES=$(echo "$html_contents" | xmllint --html --xpath "//p[text()='DÃ³lar eBROU']/../../..//p[@class='valor']/text()" - | tr ',' '.' | tr '\n' ' ')
-    BUY=$(echo "$RATES" | awk '{print $1}')
-    SELL=$(echo "$RATES" | awk '{print $2}')
+    BUY=$($ROUND_TWO $(echo "$RATES" | awk '{print $1}'))
+    SELL=$($ROUND_TWO $(echo "$RATES" | awk '{print $2}'))
 elif [ "$EXCHANGE" = "itau" ]; then
     EXCHANGE_NAME="Itaú"
     xml_contents=$(wget -qO- https://www.itau.com.uy/inst/aci/cotiz.xml)
@@ -82,9 +86,6 @@ echo "${MEAN_EXPR} = ${MEAN}"
 # Thanks SO
 beginswith() { case "$2" in "$1"*) true ;; *) false ;; esac }
 
-# Use GNU's printf instead of bash builtin
-# `printf %.2f` rounds the input to two decimal places.
-ROUND_TWO="/usr/bin/printf %.2f"
 
 if [ "$AMOUNT" != "" ]; then
     if beginswith "$" "$AMOUNT"; then
