@@ -92,10 +92,10 @@ if [ "$AMOUNT" != "" ]; then
     if beginswith "$" "$AMOUNT"; then
         # The `cut` command drops the initial `$` from the input.
         AMOUNT=$(echo "$AMOUNT" | cut -c 2-)
-        UYU=$($ROUND_TWO "$AMOUNT" | tr ',' '.')
+        UYU=$($ROUND_TWO "$AMOUNT")
         USD=$($ROUND_TWO "$(echo "(${UYU} / ${MEAN})" | $CALC)")
     else
-        USD=$($ROUND_TWO "$AMOUNT" | tr ',' '.')
+        USD=$($ROUND_TWO "$AMOUNT")
         UYU=$($ROUND_TWO "$(echo "(${USD} * ${MEAN})" | $CALC)")
     fi
 
