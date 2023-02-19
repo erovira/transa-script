@@ -78,7 +78,8 @@ MEAN_EXPR="(${BUY} + ${SELL}) / 2"
 
 # --mathlib is for bc to use decimals properly
 CALC="bc --mathlib"
-MEAN=$(echo "${MEAN_EXPR}" | $CALC)
+# Trim trailing zeros with sed substitution if decimal point is present.
+MEAN=$(echo "${MEAN_EXPR}" | $CALC | sed -E '/\./ s/\.?0+$//')
 
 # Echo mean computation, in case anyone wants to replicate it themselves.
 echo "${MEAN_EXPR} = ${MEAN}"
