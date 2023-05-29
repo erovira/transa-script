@@ -13,17 +13,17 @@ LC_NUMERIC="POSIX"
 DEFAULT="itau"
 
 exit_instructions() {
-    echo "Correct usage examples:"
-    echo "  transa"
-    echo "  transa <amount>"
-    echo "  transa <amount> brou"
-    echo "  transa <amount> itau"
-    echo "  transa itau"
-    echo "  transa brou"
-    echo ""
-    echo "If using amount with \$, make sure to escape it:"
-    echo "  transa \\\$20000"
-    echo "  transa \\\$20000 brou"
+    >&2 echo "Correct usage examples:"
+    >&2 echo "  transa"
+    >&2 echo "  transa <amount>"
+    >&2 echo "  transa <amount> brou"
+    >&2 echo "  transa <amount> itau"
+    >&2 echo "  transa itau"
+    >&2 echo "  transa brou"
+    >&2 echo ""
+    >&2 echo "If using amount with \$, make sure to escape it:"
+    >&2 echo "  transa \\\$20000"
+    >&2 echo "  transa \\\$20000 brou"
     exit 1
 }
 
