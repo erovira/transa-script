@@ -54,15 +54,28 @@ EXCHANGE=$(echo "$EXCHANGE" | tr '[:upper:]' '[:lower:]')
 # `printf %.2f` rounds the input to two decimal places.
 ROUND_TWO="/usr/bin/printf %.2f"
 
+# macOS doesn't ship with `wget` by default, but does with `curl` which is why it's our first option.
+if command -v curl > /dev/null
+then
+    FETCH="curl --silent"
+elif command -v wget > /dev/null
+then
+    FETCH="wget --quiet --output-document=/dev/stdout"
+else
+    >&2 echo "ERROR: Unable to fetch exchange rates. Please make sure either \"curl\" or \"wget\" are installed."
+    exit 1
+fi
+
+
 if [ "$EXCHANGE" = "brou" ]; then
     EXCHANGE_NAME="eBROU"
-    html_contents=$(wget -qO- 'https://www.brou.com.uy/c/portal/render_portlet?p_l_id=20593&p_p_id=cotizacionfull_WAR_broutmfportlet_INSTANCE_otHfewh1klyS&p_p_lifecycle=0&p_t_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=0&p_p_col_count=2&p_p_isolated=1&currentURL=%2Fweb%2Fguest%2Fcotizaciones')
+    html_contents=$($FETCH 'https://www.brou.com.uy/c/portal/render_portlet?p_l_id=20593&p_p_id=cotizacionfull_WAR_broutmfportlet_INSTANCE_otHfewh1klyS&p_p_lifecycle=0&p_t_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=0&p_p_col_count=2&p_p_isolated=1&currentURL=%2Fweb%2Fguest%2Fcotizaciones')
     RATES=$(echo "$html_contents" | xmllint --html --xpath "//p[text()='DÃ³lar eBROU']/../../..//p[@class='valor']/text()" - | tr ',' '.' | tr '\n' ' ')
     BUY=$($ROUND_TWO "$(echo "$RATES" | awk '{print $1}')")
     SELL=$($ROUND_TWO "$(echo "$RATES" | awk '{print $2}')")
 elif [ "$EXCHANGE" = "itau" ]; then
     EXCHANGE_NAME="Itaú"
-    xml_contents=$(wget -qO- https://www.itau.com.uy/inst/aci/cotiz.xml)
+    xml_contents=$($FETCH https://www.itau.com.uy/inst/aci/cotiz.xml)
     BUY=$(echo "$xml_contents" | xmllint --xpath "//cotizacion[moneda='LINK']/compra/text()" - | tr ',' '.')
     SELL=$(echo "$xml_contents" | xmllint --xpath "//cotizacion[moneda='LINK']/venta/text()" - | tr ',' '.')
 else
