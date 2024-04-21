@@ -82,8 +82,6 @@ else
     exit_instructions
 fi
 
-echo "$EXCHANGE_NAME compra y venta: ${BUY}, ${SELL}"
-
 #
 # Compute the mean
 #
@@ -94,8 +92,6 @@ CALC="bc --mathlib"
 # Trim trailing zeros with sed substitution if decimal point is present.
 MEAN=$(echo "${MEAN_EXPR}" | $CALC | sed -E '/\./ s/\.?0+$//')
 
-# Echo mean computation, in case anyone wants to replicate it themselves.
-echo "${MEAN_EXPR} = ${MEAN}"
 
 # Thanks SO
 beginswith() { case "$2" in "$1"*) true ;; *) false ;; esac }
@@ -107,12 +103,50 @@ if [ "$AMOUNT" != "" ]; then
         AMOUNT=$(echo "$AMOUNT" | cut -c 2-)
         UYU=$($ROUND_TWO "$AMOUNT")
         USD=$($ROUND_TWO "$(echo "(${UYU} / ${MEAN})" | $CALC)")
+        INPUT_CURRENCY=UYU
+        TRANSA_CURRENCY=USD
+        TRANSA_VALUE="$USD"
     else
         USD=$($ROUND_TWO "$AMOUNT")
         UYU=$($ROUND_TWO "$(echo "(${USD} * ${MEAN})" | $CALC)")
+        INPUT_CURRENCY=USD
+        TRANSA_CURRENCY=UYU
+        TRANSA_VALUE="$UYU"
     fi
-
-    echo ""
-    echo "TRANSA: US\$ $USD = $ $UYU"
-
+else
+    # So that we don't have unbound local variables when calling our output function.
+    UYU=""
+    USD=""
+    INPUT_CURRENCY=""
+    TRANSA_CURRENCY=""
+    TRANSA_VALUE=""
 fi
+
+plain_text_output() {
+    AMOUNT=${1}
+    INPUT_CURRENCY=${2}
+    EXCHANGE=${3}
+    EXCHANGE_NAME=${4}
+    BUY=${5}
+    SELL=${6}
+    MEAN=${7}
+    MEAN_EXPR=${8}
+    USD=${9}
+    UYU=${10}
+    TRANSA_CURRENCY=${11}
+    TRANSA_VALUE=${12}
+
+    if [ "$AMOUNT" != "" ]; then
+        TRANSA_TEXT="\n\nTRANSA: US\$ $USD = $ $UYU"
+    else
+        TRANSA_TEXT=""
+    fi
+    /usr/bin/printf "$EXCHANGE_NAME compra y venta: $BUY, $SELL\n$MEAN_EXPR = $MEAN$TRANSA_TEXT"
+}
+
+# Compute plaintext transa output based on all the variables
+OUTPUT=$(plain_text_output "$AMOUNT" "$INPUT_CURRENCY" "$EXCHANGE" "$EXCHANGE_NAME" "$BUY" "$SELL" "$MEAN" "$MEAN_EXPR" "$USD" "$UYU" "$TRANSA_CURRENCY" "$TRANSA_VALUE")
+
+# Print final output to stdout
+/usr/bin/printf '%b\n' "$OUTPUT"
+
