@@ -24,27 +24,69 @@ exit_instructions() {
     >&2 echo "If using amount with \$, make sure to escape it:"
     >&2 echo "  transa \\\$20000"
     >&2 echo "  transa \\\$20000 brou"
-    exit 1
 }
 
-# Act depending on the number of arguments
-if [ $# -eq 0 ]; then
+# region New argument processing
+
+json_flag=false
+position=0
+
+arg1=""
+arg2=""
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        # Flags
+        -j|--json)
+            json_flag=true
+            shift
+            ;;
+        *)
+            # Positionals
+            case "$position" in
+                0)
+                    # Position was initialized at 0, so we store the first positional in `arg1` and increment `position`.
+                    position=1
+                    arg1=$1
+                    shift
+                    ;;
+                1)
+                    # If we're here it means we've already consumed one positional and we're about to consume the second one.
+                    position=2
+                    arg2=$1
+                    shift
+                    ;;
+                2)
+                    # We only expected two positionals. If we're here it means we've received more. We need to exit with an error.
+                    /usr/bin/printf "%b\n" "Unknown positional: $1\n" >&2
+                    exit_instructions
+                    exit 1
+            esac
+    esac
+done
+
+# endregion
+
+if [ "$arg1" = "" ]; then
+    # If arg1 is empty, then arg2 must be empty by construction, therefore we're in the case of:
+    # - No amount provided, so we'll only fetch exchange rates.
+    # - Use default exchange: itau
     AMOUNT=""
     EXCHANGE=$DEFAULT
-elif [ $# -eq 1 ]; then
-    # transa <number> or transa brou
-    if echo "$1" | grep -E -q '^[$]?[[:digit:]]*\.?[[:digit:]]+$'; then
-        AMOUNT=$1
+elif [ "$arg2" = "" ]; then
+    # Only one positional argument was passed, we need to determine if it's an amount or an exchange.
+    if echo "$arg1" | grep -E -q '^[$]?[[:digit:]]*\.?[[:digit:]]+$'; then
+        # In this case it's an amount.
+        AMOUNT=$arg1
         EXCHANGE=$DEFAULT
     else
+        # In this case, we ASSUME it was an exchange. We'll check if it's valid below.
         AMOUNT=""
-        EXCHANGE=$1
+        EXCHANGE=$arg1
     fi
-elif [ $# -eq 2 ]; then
-    AMOUNT=$1
-    EXCHANGE=$2
 else
-    exit_instructions
+    AMOUNT=$arg1
+    EXCHANGE=$arg2
 fi
 
 # Default to "itau" and convert to lowercase
@@ -79,7 +121,9 @@ elif [ "$EXCHANGE" = "itau" ]; then
     BUY=$(echo "$xml_contents" | xmllint --xpath "//cotizacion[moneda='LINK']/compra/text()" - | tr ',' '.')
     SELL=$(echo "$xml_contents" | xmllint --xpath "//cotizacion[moneda='LINK']/venta/text()" - | tr ',' '.')
 else
+    # EXCHANGE validation failed.
     exit_instructions
+    exit 1
 fi
 
 #
@@ -144,8 +188,63 @@ plain_text_output() {
     /usr/bin/printf "$EXCHANGE_NAME compra y venta: $BUY, $SELL\n$MEAN_EXPR = $MEAN$TRANSA_TEXT"
 }
 
-# Compute plaintext transa output based on all the variables
-OUTPUT=$(plain_text_output "$AMOUNT" "$INPUT_CURRENCY" "$EXCHANGE" "$EXCHANGE_NAME" "$BUY" "$SELL" "$MEAN" "$MEAN_EXPR" "$USD" "$UYU" "$TRANSA_CURRENCY" "$TRANSA_VALUE")
+json_output() {
+    AMOUNT=${1}
+    INPUT_CURRENCY=${2}
+    EXCHANGE=${3}
+    EXCHANGE_NAME=${4}
+    BUY=${5}
+    SELL=${6}
+    MEAN=${7}
+    MEAN_EXPR=${8}
+    USD=${9}
+    UYU=${10}
+    TRANSA_CURRENCY=${11}
+    TRANSA_VALUE=${12}
+
+    if [ "$AMOUNT" != "" ]; then
+        # The rounded input is what's actually being used in the transa, therefore we return it here as input.
+        input_value="$($ROUND_TWO "$AMOUNT")"
+        input_currency="\"$INPUT_CURRENCY\""
+        transa_value="$TRANSA_VALUE"        
+        transa_currency="\"$TRANSA_CURRENCY\""
+    else
+        input_value=null
+        input_currency=null
+        transa_value=null 
+        transa_currency=null       
+    fi
+    created_at="\"$(date -u +%Y-%m-%dT%H:%M:%S%Z)\""
+    
+    # First result
+    bank="\"$EXCHANGE\""
+    buy=$BUY
+    sell=$SELL
+    computed_mean=$MEAN
+
+    SEP="  "
+
+    START_JSON="{\n"
+    ROOT_FIELDS="$SEP\"input_value\": $input_value,\n$SEP\"input_currency\": $input_currency,\n$SEP\"created_at\": $created_at,\n$SEP\"results\": [\n"
+    
+    INNER_SEP="$SEP$SEP$SEP"
+    RESULT_START="$SEP$SEP{\n"
+    RESULT_FIELDS="$INNER_SEP\"bank\": $bank,\n$INNER_SEP\"buy\": $buy,\n$INNER_SEP\"sell\": $sell,\n$INNER_SEP\"computed_mean\": $computed_mean,\n$INNER_SEP\"transa_value\": $transa_value,\n$INNER_SEP\"transa_currency\": $transa_currency\n"
+    RESULT_END="$SEP$SEP}\n$SEP]"
+    RESULT="$RESULT_START$RESULT_FIELDS$RESULT_END"  
+    
+    END_JSON="\n}"
+
+    /usr/bin/printf "$START_JSON$ROOT_FIELDS$RESULT$END_JSON"    
+}
+
+if [ "$json_flag" = true ]; then
+    # Compute plaintext transa output
+    OUTPUT=$(json_output "$AMOUNT" "$INPUT_CURRENCY" "$EXCHANGE" "$EXCHANGE_NAME" "$BUY" "$SELL" "$MEAN" "$MEAN_EXPR" "$USD" "$UYU" "$TRANSA_CURRENCY" "$TRANSA_VALUE")
+else
+    # Compute JSON transa output
+    OUTPUT=$(plain_text_output "$AMOUNT" "$INPUT_CURRENCY" "$EXCHANGE" "$EXCHANGE_NAME" "$BUY" "$SELL" "$MEAN" "$MEAN_EXPR" "$USD" "$UYU" "$TRANSA_CURRENCY" "$TRANSA_VALUE")    
+fi
 
 # Print final output to stdout
 /usr/bin/printf '%b\n' "$OUTPUT"
