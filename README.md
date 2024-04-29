@@ -4,6 +4,9 @@ Shell script to compute the Itaú & BROU mean [USD](https://en.wikipedia.org/wik
 ## Usage
 
 ```
+# General usage:
+transa [<amount>] [itau|brou] [-j|--json]"
+
 # Get exchange rates only
 transa
 transa itau
@@ -26,6 +29,26 @@ Then you'll be able to call transa from your terminal such as in the examples be
 Notes:
 - Only install and use the script if you trust it.
 - If `$HOME/.local/bin` is not on your $PATH, you'll have to add it.
+
+
+## Structured json output schema
+```
+{
+  "input_value":    float,  # null if no input.
+  "input_currency": string, # Possible values: "UYU", "USD", null if no input.
+  "created_at":     string, # Date the script completed in ISO 8601 format.
+  "results": [
+    {
+      "bank":             string, # Possible values: "itau", "brou"
+      "buy":              float,
+      "sell":             float,
+      "computed_mean":    float,
+      "transa_value":     float,  # null if no input.
+      "transa_currency":  string, # Possible values: "UYU", "USD", null if no input.
+    }
+  ]
+}
+```
 
 ## Examples
 
@@ -74,3 +97,23 @@ TRANSA: US$ 1277.14 = $ 50000.00
 ```
 
 ⚠️ Note that you'll have to escape the `$` character with a `\`
+
+### Structured JSON output
+```
+➜ transa 1000 brou --json
+{
+  "input_value": 1000.00,
+  "input_currency": "USD",
+  "created_at": "2024-04-29T00:09:59UTC",
+  "results": [
+    {
+      "bank": "brou",
+      "buy": 37.45,
+      "sell": 38.95,
+      "computed_mean": 38.2,
+      "transa_value": 38200.00,
+      "transa_currency": "UYU"
+    }
+  ]
+}
+```
