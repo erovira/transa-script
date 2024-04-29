@@ -8,12 +8,12 @@ Shell script to compute the Itaú & BROU mean [USD](https://en.wikipedia.org/wik
 transa [<amount>] [itau|brou] [-j|--json]"
 
 # Get exchange rates only
-transa
+transa # Defaults to itau
 transa itau
 transa brou
 
 # Exchange rates + calculation for a certain amount
-transa <amount>
+transa <amount> # Defaults to itau
 transa <amount> brou
 transa <amount> itau
 ```
