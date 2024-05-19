@@ -14,19 +14,31 @@ DEFAULT="itau"
 
 exit_instructions() {
     >&2 echo "General usage:"
-    >&2 echo "  ${0} [<amount>] [itau|brou] [-j|--json]"
+    >&2 echo "  ${0} [<amount>] [itau|brou|bcu] [-j|--json]"
     >&2 echo ""
     >&2 echo "Usage examples:"
     >&2 echo "  ${0}"
     >&2 echo "  ${0} <amount>"
     >&2 echo "  ${0} <amount> brou"
     >&2 echo "  ${0} <amount> itau"
+    >&2 echo "  ${0} <amount> bcu"
     >&2 echo "  ${0} itau"
     >&2 echo "  ${0} brou"
+    >&2 echo "  ${0} bcu"
     >&2 echo ""
     >&2 echo "If using amount with \$, make sure to escape it:"
     >&2 echo "  ${0} \\\$20000"
     >&2 echo "  ${0} \\\$20000 brou"
+}
+
+seven_days_ago() {
+    # -o/--operating-system to avoid printing other system info.
+    os=$(uname -o | tr '[:upper:]' '[:lower:]')
+    if [ "$os" = "darwin" ]; then
+        date -v-7d +%d/%m/%Y
+    else
+        date -d "7 days ago" +%d/%m/%Y
+    fi
 }
 
 # region New argument processing
@@ -103,9 +115,15 @@ ROUND_TWO="/usr/bin/printf %.2f"
 if command -v curl > /dev/null
 then
     FETCH="curl --silent"
+    FETCH_POST() {
+        curl --silent --header "Content-Type: application/json" --request POST --data "$1" "$2"
+    }
 elif command -v wget > /dev/null
 then
     FETCH="wget --quiet --output-document=/dev/stdout"
+    FETCH_POST() {
+        wget --quiet --method POST --header='Content-Type: application/json' --body-data="$1" --output-document=/dev/stdout "$2"
+    }
 else
     >&2 echo "ERROR: Unable to fetch exchange rates. Please make sure either \"curl\" or \"wget\" are installed."
     exit 1
@@ -123,6 +141,22 @@ elif [ "$EXCHANGE" = "itau" ]; then
     xml_contents=$($FETCH https://www.itau.com.uy/inst/aci/cotiz.xml)
     BUY=$(echo "$xml_contents" | xmllint --xpath "//cotizacion[moneda='LINK']/compra/text()" - | tr ',' '.')
     SELL=$(echo "$xml_contents" | xmllint --xpath "//cotizacion[moneda='LINK']/venta/text()" - | tr ',' '.')
+elif [ "$EXCHANGE" = "bcu" ]; then
+    EXCHANGE_NAME="Banco Central del Uruguay"
+    # BCU might not have an exchange published for today (if it's a non working day or if they haven't updated the exchange for today yet). Their website defaults to showing the data for the last available day, which is the actual rate (as rates are only updated on working days).
+    # We assume we'll find some exchange in the last 7 days, which seems safe as the longest non working day streak is < 7.
+    body='{"KeyValuePairs": {"Monedas": [{"Val": "2225","Text": "DLS. USA BILLETE"}],"FechaDesde": "'"$(seven_days_ago)"'","Grupo": "2"}}'
+    url='https://www.bcu.gub.uy/_layouts/15/BCU.Cotizaciones/handler/CotizacionesHandler.ashx?op=getcotizaciones'
+    response=$(FETCH_POST "$body" "$url")
+
+    n_rates="$(echo "$response" | jq '.cotizacionesoutlist.Cotizaciones | length')"
+    if [ "$n_rates" -eq 0 ]; then
+        echo "Error: No exchange rate found in the past 7 days. Try waiting or editing the code to fetch a wider range of dates."
+        exit 1
+    fi
+
+    BUY=$(echo "$response" | jq '.cotizacionesoutlist.Cotizaciones | sort_by(.Fecha) | last | .TCC')
+    SELL=$(echo "$response" | jq '.cotizacionesoutlist.Cotizaciones | sort_by(.Fecha) | last | .TCV')
 else
     # EXCHANGE validation failed.
     exit_instructions
