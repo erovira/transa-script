@@ -1,22 +1,30 @@
 # transa-script
-Shell script to compute the Itaú & BROU mean [USD](https://en.wikipedia.org/wiki/United_States_dollar)/[UYU](https://en.wikipedia.org/wiki/Uruguayan_peso) exchange rate.
+Shell script to compute the mean [USD](https://en.wikipedia.org/wiki/United_States_dollar)/[UYU](https://en.wikipedia.org/wiki/Uruguayan_peso) exchange rate from many Uruguayan rate providers.
 
 ## Usage
 
 ```
 # General usage:
-transa [<amount>] [itau|brou] [-j|--json]"
+transa [<amount>] [itau|brou|bcu] [-j|--json]"
 
 # Get exchange rates only
 transa # Defaults to itau
 transa itau
 transa brou
+transa bcu
 
 # Exchange rates + calculation for a certain amount
 transa <amount> # Defaults to itau
 transa <amount> brou
 transa <amount> itau
+transa <amount> bcu
 ```
+
+## Supported providers
+
+- [ITAÚ Uruguay](https://www.itau.com.uy/) (default).
+- [BROU](https://www.brou.com.uy/).
+- [BCU](https://www.bcu.gub.uy/) (Banco Central del Uruguay).
 
 ## Installation
 
@@ -39,7 +47,7 @@ Notes:
   "created_at":     string, # Date the script completed in ISO 8601 format.
   "results": [
     {
-      "bank":             string, # Possible values: "itau", "brou"
+      "bank":             string, # Possible values: "itau", "brou", "bcu"
       "buy":              float,
       "sell":             float,
       "computed_mean":    float,
