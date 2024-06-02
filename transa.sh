@@ -116,13 +116,13 @@ if command -v curl > /dev/null
 then
     FETCH="curl --silent"
     FETCH_POST() {
-        curl --silent --header "Content-Type: application/json" --request POST --data "$1" "$2"
+        curl --insecure --silent --header "Content-Type: application/json" --request POST --data "$1" "$2"
     }
 elif command -v wget > /dev/null
 then
     FETCH="wget --quiet --output-document=/dev/stdout"
     FETCH_POST() {
-        wget --quiet --method POST --header='Content-Type: application/json' --body-data="$1" --output-document=/dev/stdout "$2"
+        wget --no-check-certificate --quiet --method POST --header='Content-Type: application/json' --body-data="$1" --output-document=/dev/stdout "$2"
     }
 else
     >&2 echo "ERROR: Unable to fetch exchange rates. Please make sure either \"curl\" or \"wget\" are installed."
